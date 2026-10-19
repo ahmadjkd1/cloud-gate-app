@@ -1,0 +1,738 @@
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>CloudGate</title>
+<style>
+/* Layout concept: "blueprint ledger" — alternating ink/paper bands like a
+   schematic document; mono labels act as drawing annotations; one fixed
+   editorial palette (not OS-theme-reactive) is the brand itself. */
+:root{
+  --paper:#F5F6F1;
+  --paper-raised:#FFFFFF;
+  --ink:#11151C;
+  --ink-dim:#555B66;
+  --line:rgba(17,21,28,0.13);
+  --ink-bg:#0D1119;
+  --fg:#ECEEF2;
+  --fg-dim:#9AA3B2;
+  --line-ink:rgba(236,238,242,0.14);
+  --accent:#E8632A;
+  --accent-ink:#FFF7F2;
+  --accent-soft:rgba(232,99,42,0.14);
+  --system:#4C7CF0;
+  --radius:10px;
+  --font-display:'Archivo',ui-sans-serif,system-ui,sans-serif;
+  --font-body:'IBM Plex Sans',ui-sans-serif,system-ui,sans-serif;
+  --font-mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--font-body);
+  font-size:16px;
+  line-height:1.55;
+}
+img{max-width:100%;}
+h1,h2,h3{font-family:var(--font-display);text-wrap:balance;margin:0;}
+p{margin:0;}
+a{color:inherit;}
+.gutter{
+  padding-left:max(16px, env(safe-area-inset-left,0px));
+  padding-right:max(16px, env(safe-area-inset-right,0px));
+}
+.wrap{max-width:1120px;margin:0 auto;}
+.band{padding-block:88px;}
+.band-tight{padding-block:56px;}
+.on-paper{background:var(--paper);color:var(--ink);}
+.on-raised{background:var(--paper-raised);color:var(--ink);}
+.on-ink{background:var(--ink-bg);color:var(--fg);}
+
+.eyebrow{
+  font-family:var(--font-mono);
+  font-size:12.5px;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  color:var(--accent);
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:18px;
+}
+.on-ink .eyebrow{color:#FF9F6E;}
+.eyebrow::before{content:"//";opacity:.6;}
+
+/* ---------- nav ---------- */
+header.site{
+  position:sticky;
+  top:env(safe-area-inset-top,0px);
+  z-index:20;
+  background:rgba(13,17,25,0.92);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line-ink);
+}
+body::before{
+  content:"";
+  position:fixed;
+  inset:0 0 auto;
+  height:env(safe-area-inset-top,0px);
+  z-index:21;
+  background:#0D1119;
+}
+nav.wrap{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+  padding-block:16px;
+  color:var(--fg);
+}
+.wordmark{
+  font-family:var(--font-display);
+  font-weight:900;
+  font-size:19px;
+  letter-spacing:-.01em;
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+.wordmark .dot{width:9px;height:9px;border-radius:2px;background:var(--accent);display:inline-block;}
+.navlinks{display:flex;gap:28px;font-size:14px;color:var(--fg-dim);}
+.navlinks a{text-decoration:none;}
+.navlinks a:hover{color:var(--fg);}
+.navctas{display:flex;align-items:center;gap:10px;}
+
+.btn{
+  font-family:var(--font-body);
+  font-weight:600;
+  font-size:14.5px;
+  padding:11px 20px;
+  border-radius:7px;
+  border:1px solid transparent;
+  cursor:pointer;
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  white-space:nowrap;
+}
+.btn:focus-visible{outline:2px solid var(--system);outline-offset:2px;}
+.btn-primary{background:var(--accent);color:var(--accent-ink);}
+.btn-primary:hover{background:#D5551F;}
+.btn-ghost-ink{background:transparent;color:var(--fg);border-color:var(--line-ink);}
+.btn-ghost-ink:hover{border-color:var(--fg-dim);}
+.btn-ghost-paper{background:transparent;color:var(--ink);border-color:var(--line);}
+.btn-ghost-paper:hover{border-color:var(--ink-dim);}
+
+/* ---------- hero ---------- */
+.hero{
+  background:
+    repeating-linear-gradient(0deg, rgba(236,238,242,0.05) 0 1px, transparent 1px 48px),
+    repeating-linear-gradient(90deg, rgba(236,238,242,0.05) 0 1px, transparent 1px 48px),
+    var(--ink-bg);
+  color:var(--fg);
+  padding-block:72px 96px;
+}
+.hero-grid{
+  display:grid;
+  grid-template-columns:1.05fr .95fr;
+  gap:56px;
+  align-items:center;
+}
+.hero h1{
+  font-size:clamp(34px,4.6vw,56px);
+  font-weight:900;
+  line-height:1.05;
+  letter-spacing:-.015em;
+}
+.hero-sub{
+  margin-top:22px;
+  max-width:46ch;
+  color:var(--fg-dim);
+  font-size:16.5px;
+  line-height:1.6;
+}
+.hero-ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px;}
+.trust-line{
+  margin-top:20px;
+  font-family:var(--font-mono);
+  font-size:12px;
+  letter-spacing:.03em;
+  color:var(--fg-dim);
+}
+.trust-line b{color:var(--fg);font-weight:600;}
+
+/* blueprint diagram */
+.diagram{
+  border:1px solid var(--line-ink);
+  border-radius:12px;
+  padding:26px;
+  background:rgba(236,238,242,0.03);
+}
+.diagram-label{
+  font-family:var(--font-mono);
+  font-size:11px;
+  color:var(--fg-dim);
+  letter-spacing:.04em;
+  margin-bottom:16px;
+}
+.org-boundary{
+  border:1.5px dashed rgba(236,238,242,0.35);
+  border-radius:10px;
+  padding:18px;
+}
+.org-boundary-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:14px;
+}
+.org-boundary-top span{font-family:var(--font-mono);font-size:11px;color:var(--fg-dim);}
+.ou-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.ou{
+  border:1px solid var(--line-ink);
+  border-radius:8px;
+  padding:12px 10px;
+  text-align:center;
+  font-size:12px;
+  color:var(--fg-dim);
+}
+.ou b{display:block;color:var(--fg);font-size:13px;margin-bottom:2px;}
+.cg-chip{
+  margin-top:14px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  background:var(--accent-soft);
+  border:1px solid rgba(232,99,42,0.4);
+  border-radius:8px;
+  padding:9px 12px;
+  font-size:12.5px;
+  color:#FFD8C2;
+}
+.cg-chip .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);flex-shrink:0;}
+.outside-row{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-top:18px;
+  padding-top:16px;
+  border-top:1px solid var(--line-ink);
+}
+.no-access{
+  font-family:var(--font-mono);
+  font-size:11px;
+  color:var(--fg-dim);
+  border:1px dashed var(--line-ink);
+  border-radius:8px;
+  padding:8px 10px;
+  flex:1;
+  opacity:.75;
+}
+.no-access .x{color:var(--accent);font-weight:700;}
+
+/* ---------- problem ---------- */
+.problem h2{font-size:clamp(26px,3.4vw,38px);font-weight:800;max-width:18ch;}
+.problem-sub{margin-top:16px;max-width:58ch;color:var(--ink-dim);font-size:16px;}
+
+/* ---------- compare ---------- */
+.compare-grid{
+  margin-top:28px;
+  border:1px solid var(--line-ink);
+  border-radius:12px;
+  overflow:hidden;
+}
+.compare-row{
+  display:grid;
+  grid-template-columns:1.1fr 1fr 1fr;
+  border-top:1px solid var(--line-ink);
+}
+.compare-row:first-child{border-top:none;}
+.compare-row > div{padding:16px 18px;font-size:14.5px;}
+.compare-row .cat{
+  font-family:var(--font-mono);
+  font-size:12.5px;
+  color:var(--fg-dim);
+  display:flex;
+  align-items:center;
+}
+.compare-row .typical{color:var(--fg-dim);border-left:1px solid var(--line-ink);}
+.compare-row .cg{color:var(--fg);border-left:1px solid var(--line-ink);font-weight:500;}
+.compare-head{
+  display:grid;
+  grid-template-columns:1.1fr 1fr 1fr;
+  background:rgba(236,238,242,0.04);
+}
+.compare-head > div{padding:12px 18px;font-family:var(--font-mono);font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--fg-dim);}
+.compare-head .cg-head{color:var(--accent);border-left:1px solid var(--line-ink);}
+.compare-head .typ-head{border-left:1px solid var(--line-ink);}
+
+/* ---------- steps ---------- */
+.steps{
+  margin-top:40px;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:1px;
+  background:var(--line);
+  border:1px solid var(--line);
+  border-radius:12px;
+  overflow:hidden;
+}
+.step{background:var(--paper-raised);padding:26px 22px;}
+.step-num{font-family:var(--font-mono);font-size:12px;color:var(--accent);margin-bottom:14px;}
+.step h3{font-size:16.5px;font-weight:700;margin-bottom:8px;}
+.step p{font-size:14px;color:var(--ink-dim);line-height:1.55;}
+
+/* ---------- features ---------- */
+.feature-grid{
+  margin-top:36px;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:18px;
+}
+.feature{
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:22px;
+  background:var(--paper-raised);
+}
+.feature h3{font-size:16px;font-weight:700;margin-bottom:8px;}
+.feature p{font-size:14px;color:var(--ink-dim);line-height:1.55;}
+.feature .tag{
+  font-family:var(--font-mono);
+  font-size:11px;
+  color:var(--system);
+  margin-bottom:10px;
+  display:inline-block;
+}
+
+/* ---------- pricing / trial ---------- */
+.price-wrap{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:40px;
+  align-items:start;
+  margin-top:36px;
+}
+.price-card{
+  border:1px solid var(--line-ink);
+  border-radius:14px;
+  padding:30px;
+  background:rgba(236,238,242,0.03);
+}
+.price-amount{
+  font-family:var(--font-display);
+  font-weight:900;
+  font-size:48px;
+  display:flex;
+  align-items:baseline;
+  gap:8px;
+}
+.price-amount small{font-family:var(--font-mono);font-size:14px;color:var(--fg-dim);font-weight:400;}
+.price-list{margin-top:18px;display:flex;flex-direction:column;gap:10px;font-size:14.5px;color:var(--fg-dim);}
+.price-list span.ck{color:var(--accent);margin-right:8px;}
+
+.trial-card{
+  border:1px solid rgba(232,99,42,0.45);
+  border-radius:14px;
+  padding:30px;
+  background:var(--accent-soft);
+}
+.trial-card h3{font-size:19px;font-weight:800;color:var(--fg);}
+.trial-card p.lede{margin-top:10px;color:var(--fg-dim);font-size:14.5px;line-height:1.55;}
+.trial-fine{margin-top:16px;font-family:var(--font-mono);font-size:11.5px;color:var(--fg-dim);line-height:1.6;}
+
+/* ---------- lead form ---------- */
+#trial{scroll-margin-top:72px;}
+.form-wrap{
+  margin-top:48px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:var(--paper-raised);
+  color:var(--ink);
+  padding:32px;
+  max-width:560px;
+}
+.intent-toggle{display:flex;gap:10px;margin-bottom:22px;}
+.intent-opt{
+  flex:1;
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:12px 14px;
+  font-size:13.5px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.intent-opt input{accent-color:var(--accent);}
+.intent-opt.active{border-color:var(--accent);background:var(--accent-soft);}
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--ink-dim);}
+.field input,.field select{
+  width:100%;
+  padding:11px 13px;
+  border:1px solid var(--line);
+  border-radius:7px;
+  font-family:var(--font-body);
+  font-size:14.5px;
+  background:var(--paper);
+  color:var(--ink);
+}
+.field input:focus,.field select:focus{outline:2px solid var(--system);outline-offset:1px;}
+.form-submit{width:100%;justify-content:center;margin-top:6px;}
+.form-note{margin-top:14px;font-size:12.5px;color:var(--ink-dim);}
+.success{display:none;text-align:center;padding:14px 0;}
+.success.show{display:block;}
+.success .mark{
+  width:40px;height:40px;border-radius:50%;background:var(--accent);
+  color:#fff;display:flex;align-items:center;justify-content:center;
+  font-size:20px;margin:0 auto 14px;
+}
+
+/* ---------- closing cta ---------- */
+.closing{text-align:left;}
+.closing h2{font-size:clamp(28px,3.8vw,42px);font-weight:900;max-width:20ch;}
+.closing .hero-ctas{margin-top:26px;}
+
+/* ---------- footer ---------- */
+footer{border-top:1px solid var(--line-ink);}
+.footer-grid{
+  display:flex;
+  justify-content:space-between;
+  gap:40px;
+  flex-wrap:wrap;
+  padding-block:40px;
+}
+.footer-brand .wordmark{color:var(--fg);}
+.footer-brand p{margin-top:10px;font-size:13.5px;color:var(--fg-dim);max-width:34ch;}
+.footer-cols{display:flex;gap:56px;flex-wrap:wrap;}
+.footer-col h4{font-family:var(--font-mono);font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--fg-dim);margin-bottom:12px;}
+.footer-col a{display:block;font-size:14px;color:var(--fg-dim);text-decoration:none;margin-bottom:9px;}
+.footer-col a:hover{color:var(--fg);}
+.footer-bottom{
+  border-top:1px solid var(--line-ink);
+  padding-block:18px;
+  display:flex;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:10px;
+  font-size:12.5px;
+  color:var(--fg-dim);
+  font-family:var(--font-mono);
+}
+
+/* ---------- responsive ---------- */
+@media (max-width:860px){
+  .hero-grid{grid-template-columns:1fr;}
+  .navlinks{display:none;}
+  .steps{grid-template-columns:1fr 1fr;}
+  .feature-grid{grid-template-columns:1fr 1fr;}
+  .price-wrap{grid-template-columns:1fr;}
+  .compare-row,.compare-head{grid-template-columns:1fr;}
+  .compare-row .typical,.compare-row .cg,.compare-head .cg-head,.compare-head .typ-head{border-left:none;border-top:1px solid var(--line-ink);}
+}
+@media (max-width:560px){
+  .band{padding-block:56px;}
+  .steps{grid-template-columns:1fr;}
+  .feature-grid{grid-template-columns:1fr;}
+  .ou-row{grid-template-columns:1fr;}
+  .footer-grid{flex-direction:column;}
+  .form-wrap{padding:22px;}
+}
+@media (prefers-reduced-motion:reduce){
+  *{scroll-behavior:auto!important;}
+}
+html{scroll-behavior:smooth;}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;900&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<header class="site">
+  <nav class="wrap gutter">
+    <div class="wordmark"><span class="dot"></span>CloudGate</div>
+    <div class="navlinks">
+      <a href="#compare">Why CloudGate</a>
+      <a href="#how">How it works</a>
+      <a href="#pricing">Pricing</a>
+    </div>
+    <div class="navctas">
+      <a class="btn btn-ghost-ink" href="#trial">Book a demo</a>
+      <a class="btn btn-primary" href="#trial">Start free trial</a>
+    </div>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="wrap gutter hero-grid">
+    <div>
+      <div class="eyebrow">AWS multi-account governance</div>
+      <h1>AWS governance that runs inside your own account.</h1>
+      <p class="hero-sub">CloudGate deploys entirely inside your AWS Organization. No cross-account role. No SaaS control plane holding a path into your environment. It vends accounts, compiles your guardrails into real Service Control Policies, and keeps the evidence to prove they held.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#trial">Start free trial →</a>
+        <a class="btn btn-ghost-ink" href="#how">See how it works</a>
+      </div>
+      <div class="trust-line">NO CREDIT CARD · RUNS IN <b>YOUR OWN</b> AWS ACCOUNT · FREE UP TO <b>3 MONTHS</b></div>
+    </div>
+    <div class="diagram">
+      <div class="diagram-label">fig. 1 — where CloudGate actually runs</div>
+      <div class="org-boundary">
+        <div class="org-boundary-top"><span>YOUR AWS ORGANIZATION</span><span>acct root</span></div>
+        <div class="ou-row">
+          <div class="ou"><b>payments-prod</b>OU</div>
+          <div class="ou"><b>payments-uat</b>OU</div>
+          <div class="ou"><b>sandbox</b>OU</div>
+        </div>
+        <div class="cg-chip"><span class="dot"></span>CloudGate runs here — guardrails, vending, evidence</div>
+      </div>
+      <div class="outside-row">
+        <div class="no-access"><span class="x">✕</span> no vendor role · no external control plane</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band on-paper problem">
+  <div class="wrap gutter">
+    <h2>A hundred accounts. A hundred versions of &ldquo;secure.&rdquo;</h2>
+    <p class="problem-sub">Multi-account AWS governance doesn't fail because teams don't care. It fails because guardrails live in tickets, spreadsheets, and tribal knowledge instead of in the Organization itself, and nobody can see the whole picture at once.</p>
+  </div>
+</section>
+
+<section class="band on-ink" id="compare">
+  <div class="wrap gutter">
+    <div class="eyebrow">Why platform teams switch</div>
+    <h2 style="font-size:clamp(24px,3.2vw,34px);font-weight:800;max-width:30ch;">Most governance platforms ask for a way into your AWS Organization. CloudGate asks for nothing.</h2>
+    <div class="compare-grid">
+      <div class="compare-head">
+        <div></div>
+        <div class="typ-head">Typical governance SaaS</div>
+        <div class="cg-head">CloudGate</div>
+      </div>
+      <div class="compare-row">
+        <div class="cat">Access</div>
+        <div class="typical">Cross-account role into your AWS Organization</div>
+        <div class="cg">Deploys entirely inside your own account</div>
+      </div>
+      <div class="compare-row">
+        <div class="cat">Pricing</div>
+        <div class="typical">Hidden behind &ldquo;Request a demo&rdquo;</div>
+        <div class="cg">$10,000/year, flat, published below</div>
+      </div>
+      <div class="compare-row">
+        <div class="cat">Automation</div>
+        <div class="typical">Acts on your Organization immediately</div>
+        <div class="cg">14 days report-only before anything auto-applies</div>
+      </div>
+      <div class="compare-row">
+        <div class="cat">Getting started</div>
+        <div class="typical">Book a call, wait for a sales cycle</div>
+        <div class="cg">Start a free trial yourself, today</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band on-paper" id="how">
+  <div class="wrap gutter">
+    <div class="eyebrow" style="color:var(--accent);">How it works</div>
+    <h2 style="font-size:clamp(24px,3.2vw,34px);font-weight:800;max-width:26ch;">Request to evidence, in your own Organization.</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <h3>Request</h3>
+        <p>Choose a project, an environment, and the accounts you need. Submit.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <h3>Vend &amp; baseline</h3>
+        <p>CloudGate places the account in the right OU and applies IAM roles, tags, budgets, and security services automatically.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <h3>Guardrails as SCPs</h3>
+        <p>Declare a guardrail once. CloudGate compiles it into a real AWS Organizations Service Control Policy and keeps every account converged.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <h3>Evidence</h3>
+        <p>Every plan, approval, and reconcile is recorded. Export it the day an auditor asks.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band-tight band on-paper">
+  <div class="wrap gutter">
+    <div class="eyebrow" style="color:var(--accent);">What's included</div>
+    <h2 style="font-size:clamp(22px,3vw,30px);font-weight:800;">Built for the teams who answer for the Organization</h2>
+    <div class="feature-grid">
+      <div class="feature">
+        <span class="tag">// vending</span>
+        <h3>Account vending</h3>
+        <p>New AWS accounts land baselined and tagged in minutes, not a ticket queue.</p>
+      </div>
+      <div class="feature">
+        <span class="tag">// guardrails</span>
+        <h3>Guardrails as real SCPs</h3>
+        <p>Plain-language guardrails compile into AWS Organizations policy, attached automatically.</p>
+      </div>
+      <div class="feature">
+        <span class="tag">// drift</span>
+        <h3>Continuous drift detection</h3>
+        <p>Live AWS state is checked against what was declared, with optional auto-correct once you trust the pattern.</p>
+      </div>
+      <div class="feature">
+        <span class="tag">// evidence</span>
+        <h3>Compliance evidence export</h3>
+        <p>Every revision, approval, and reconcile is logged and exportable for SOC 2 and ISO 27001 audits.</p>
+      </div>
+      <div class="feature">
+        <span class="tag">// rollups</span>
+        <h3>Security &amp; cost rollups</h3>
+        <p>Fleet-wide posture for a platform lead, and exactly their own accounts and spend for a project owner.</p>
+      </div>
+      <div class="feature">
+        <span class="tag">// access</span>
+        <h3>Zero vendor access</h3>
+        <p>No role, credential, or network path into your environment. Ever.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band on-ink" id="pricing">
+  <div class="wrap gutter">
+    <div class="eyebrow">Pricing &amp; trial</div>
+    <h2 style="font-size:clamp(24px,3.2vw,34px);font-weight:800;max-width:24ch;">One price. A real trial. No sales call required to start.</h2>
+    <div class="price-wrap">
+      <div class="price-card">
+        <div class="price-amount">$10,000<small>/ year, flat</small></div>
+        <div class="price-list">
+          <div><span class="ck">✓</span>Unlimited accounts in your AWS Organization</div>
+          <div><span class="ck">✓</span>Unlimited guardrails, projects, and users</div>
+          <div><span class="ck">✓</span>Compliance evidence export included</div>
+          <div><span class="ck">✓</span>Deploys inside your own account at no extra cost</div>
+        </div>
+      </div>
+      <div class="trial-card">
+        <h3>Free for up to 3 months</h3>
+        <p class="lede">Run CloudGate in a sandbox AWS account, yours, not ours, before you commit to anything.</p>
+        <a class="btn btn-primary" href="#trial" style="margin-top:18px;">Start free trial →</a>
+        <div class="trial-fine">STANDARD TRIAL: 30 DAYS · EXTENDED PILOTS RUN UP TO 90 DAYS FOR QUALIFYING TEAMS</div>
+      </div>
+    </div>
+
+    <div class="form-wrap" id="trial">
+      <div id="leadForm">
+        <div class="intent-toggle">
+          <label class="intent-opt active" id="optTrial">
+            <input type="radio" name="intent" value="trial" checked onchange="cgSetIntent('trial')"> Start a free trial
+          </label>
+          <label class="intent-opt" id="optDemo">
+            <input type="radio" name="intent" value="demo" onchange="cgSetIntent('demo')"> Book a demo
+          </label>
+        </div>
+        <form onsubmit="return cgSubmit(event)">
+          <div class="field">
+            <label for="cgName">Name</label>
+            <input id="cgName" type="text" required autocomplete="name">
+          </div>
+          <div class="field">
+            <label for="cgEmail">Work email</label>
+            <input id="cgEmail" type="email" required autocomplete="email">
+          </div>
+          <div class="field">
+            <label for="cgCompany">Company</label>
+            <input id="cgCompany" type="text" required autocomplete="organization">
+          </div>
+          <div class="field">
+            <label for="cgAccounts">AWS accounts to govern</label>
+            <select id="cgAccounts">
+              <option>1–10</option>
+              <option>11–50</option>
+              <option>51–200</option>
+              <option>200+</option>
+            </select>
+          </div>
+          <button class="btn btn-primary form-submit" type="submit" id="cgSubmitBtn">Start my free trial →</button>
+          <p class="form-note">We'll reply within one business day with sandbox access. No credit card needed.</p>
+        </form>
+      </div>
+      <div class="success" id="cgSuccess">
+        <div class="mark">✓</div>
+        <h3 style="font-size:18px;font-weight:700;">Request received</h3>
+        <p style="margin-top:8px;color:var(--ink-dim);font-size:14.5px;" id="cgSuccessText">We'll set up your sandbox account and email you access within one business day.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band on-paper closing">
+  <div class="wrap gutter">
+    <div class="eyebrow" style="color:var(--accent);">Get started</div>
+    <h2>Your account. Your rules. Our guardrails.</h2>
+    <div class="hero-ctas">
+      <a class="btn btn-ghost-paper" href="#trial">Book a demo</a>
+      <a class="btn btn-primary" href="#trial" style="background:var(--accent);color:#fff;">Start free trial →</a>
+    </div>
+  </div>
+</section>
+
+<footer class="on-ink">
+  <div class="wrap gutter footer-grid">
+    <div class="footer-brand">
+      <div class="wordmark"><span class="dot"></span>CloudGate</div>
+      <p>Multi-account AWS governance that deploys inside your own account. Built by Ingenious.</p>
+    </div>
+    <div class="footer-cols">
+      <div class="footer-col">
+        <h4>Product</h4>
+        <a href="#how">How it works</a>
+        <a href="#compare">Why CloudGate</a>
+        <a href="#pricing">Pricing</a>
+      </div>
+      <div class="footer-col">
+        <h4>Get started</h4>
+        <a href="#trial">Free trial</a>
+        <a href="#trial">Book a demo</a>
+      </div>
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <span style="display:block;font-size:14px;color:var(--fg-dim);user-select:all;">hello@ingenious.dev</span>
+      </div>
+    </div>
+  </div>
+  <div class="wrap gutter footer-bottom">
+    <span>© 2026 Ingenious, Inc.</span>
+    <span>CloudGate runs in your AWS account, not ours.</span>
+  </div>
+</footer>
+
+<script>
+function cgSetIntent(which){
+  var optTrial = document.getElementById('optTrial');
+  var optDemo = document.getElementById('optDemo');
+  var btn = document.getElementById('cgSubmitBtn');
+  if(which === 'trial'){
+    optTrial.classList.add('active');
+    optDemo.classList.remove('active');
+    btn.textContent = 'Start my free trial →';
+  } else {
+    optDemo.classList.add('active');
+    optTrial.classList.remove('active');
+    btn.textContent = 'Request my demo →';
+  }
+}
+function cgSubmit(e){
+  e.preventDefault();
+  var isDemo = document.getElementById('optDemo').classList.contains('active');
+  document.getElementById('leadForm').style.display = 'none';
+  var successEl = document.getElementById('cgSuccess');
+  successEl.classList.add('show');
+  document.getElementById('cgSuccessText').textContent = isDemo
+    ? "We'll reach out within one business day to schedule your walkthrough."
+    : "We'll set up your sandbox account and email you access within one business day.";
+  return false;
+}
+</script>
